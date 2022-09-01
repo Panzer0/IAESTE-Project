@@ -289,88 +289,88 @@ public class PCSceneManager : MonoBehaviour
                 this.scenes.Add(new()
                 {
                     $"redandblack_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack.ply -2 {defaultHeight} 2 50 550",
-                    $"redandblack.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"redandblack.ply 2 {defaultHeight} -2 100 550"
+                    $"redandblack_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"redandblack_0001.ply -2.7 {defaultHeight} -2.7 75 550",
+                    $"redandblack_0001.ply 2 {defaultHeight} -2 100 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"loot.ply 2 {defaultHeight} 2 25 550",
-                    $"loot.ply -2 {defaultHeight} 2 50 550",
-                    $"loot.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"loot.ply 2 {defaultHeight} -2 100 550"
+                    $"loot_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"loot_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"loot_0001.ply -2.7 {defaultHeight} -2.7 75 550",
+                    $"loot_0001.ply 2 {defaultHeight} -2 100 550"
                 });
                 break;
             case 2:
                 this.scenes.Add(new()
                 {
-                    $"longdress.ply 2 {defaultHeight} 2 25 550",
-                    $"longdress.ply -2 {defaultHeight} 2 50 550",
-                    $"longdress.ply -2 {defaultHeight} -3 75 550",
-                    $"longdress.ply 2 {defaultHeight} -2 100 550",
-                    $"longdress.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"longdress.ply 2 {defaultHeight + 1000} -2 150 550",
-                    $"longdress.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"longdress.ply 2 {defaultHeight + 1000} -2 90 550",
-                    $"longdress.ply 2 {defaultHeight + 1000} -2 20 550"
+                    $"longdress_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"longdress_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"longdress_0001.ply -2 {defaultHeight} -3 75 550",
+                    $"longdress_0001.ply 2 {defaultHeight} -2 100 550",
+                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 15 550",
+                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 150 550",
+                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 15 550",
+                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 90 550",
+                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 20 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier.ply 2 {defaultHeight} 2 25 550",
-                    $"soldier.ply -2 {defaultHeight} 2 50 550",
-                    $"soldier.ply -2 {defaultHeight} -3 75 550",
-                    $"soldier.ply 2 {defaultHeight} -2 100 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 80 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 55 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 200 550"
+                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"soldier_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"soldier_0001.ply -2 {defaultHeight} -3 75 550",
+                    $"soldier_0001.ply 2 {defaultHeight} -2 100 550",
+                    $"soldier_0001.ply 2 {defaultHeight + 1000} -2 15 550",
+                    $"soldier_0001.ply 2 {defaultHeight + 1000} -2 80 550",
+                    $"soldier_0001.ply 2 {defaultHeight + 1000} -2 55 550",
+                    $"soldier_0001.ply 2 {defaultHeight + 1000} -2 15 550",
+                    $"soldier_0001.ply 2 {defaultHeight + 1000} -2 200 550"
                 });
                 this.scenes.Add(new()
                 {
                     $"redandblack.ply 2 {defaultHeight} 2 25 550",
                     $"redandblack.ply -2 {defaultHeight} 2 50 550",
                     $"redandblack.ply -2 {defaultHeight} -3 75 550",
-                    $"redandblack.ply 2 {defaultHeight} -2 100 550",
+                    $"redandblack.ply 2 {defaultHeight} -2 5 550",
                     $"redandblack.ply 2 {defaultHeight + 1000} -2 15 550",
                     $"redandblack.ply 2 {defaultHeight + 1000} -2 20 550",
                     $"redandblack.ply 2 {defaultHeight + 1000} -2 40 550",
-                    $"redandblack.ply 2 {defaultHeight + 1000} -2 10 550",
-                    $"redandblack.ply 2 {defaultHeight + 1000} -2 60 550"
+                    $"redandblack.ply 2 {defaultHeight + 1000} -2 5 550 2 11",
+
                 });
                 this.scenes.Add(new()
                 {
-                    $"loot.ply 2 {defaultHeight} 2 25 550",
-                    $"loot.ply -2 {defaultHeight} 2 50 550",
-                    $"loot.ply -2 {defaultHeight} -3 75 550",
-                    $"loot.ply 2 {defaultHeight} -2 100 550",
-                    $"loot.ply 2 {defaultHeight + 10000} -2 15 550",
-                    $"loot.ply 2 {defaultHeight + 1000} -2 500 550",
-                    $"loot.ply 2 {defaultHeight + 1000} -2 60 550",
-                    $"loot.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"loot.ply 2 {defaultHeight + 1000} -2 80 550"
+                    $"loot_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"loot_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"loot_0001.ply -2 {defaultHeight} -3 75 550",
+                    $"loot_0001.ply 2 {defaultHeight} -2 100 550",
+                    $"loot_0001.ply 2 {defaultHeight + 10000} -2 15 550",
+                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 500 550",
+                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 60 550",
+                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 15 550",
+                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 80 550"
                 });
                 break;
             case 3:
                 this.scenes.Add(new()
                 {
-                    $"longdress.ply 2 {defaultHeight} 2 25 550",
-                    $"loot.ply -2 {defaultHeight} 2 50 550"
+                    $"longdress_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"loot_0001.ply -2 {defaultHeight} 2 50 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier.ply 2 {defaultHeight} 2 25 550",
-                    $"longdress.ply -2 {defaultHeight} 2 50 550"
+                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"longdress_0001.ply -2 {defaultHeight} 2 50 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack.ply -2 {defaultHeight} 2 50 550"
+                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"redandblack_0001.ply -2 {defaultHeight} 2 50 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"loot.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack.ply -2 {defaultHeight} 2 50 550"
+                    $"loot_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"redandblack_0001.ply -2 {defaultHeight} 2 50 550"
                 });
                 break;
         }
@@ -399,9 +399,9 @@ public class PCSceneManager : MonoBehaviour
         this.swapArguments.Add(new()
         {
             "10 0 4",
-            "10 1 5 8",
+            "10 1 5",
             "10 2 6",
-            "10 3 7"
+            "1 3 7 8 9 10 11 12 13 14 15"
         });
         this.swapArguments.Add(new()
         {

@@ -58,6 +58,43 @@ public class ReadPointCloudRuntime : MonoBehaviour
                 )
             : throw new FileLoadException("Corrupted template (invalid argument count)");
     }
+    // Reads INTS_PER_POINT int values from a string and returns them as an array
+    private static List<PointCloudTemplate> ReadCloudTemplateAnimation(string line)
+    {
+        string[] words = line.Split(' ');
+        // The row contains an invalid amount of values
+        if(words.Length == 8)
+        {
+            List<PointCloudTemplate> templates = new();
+
+            string name = words[0];
+            float xPos = float.Parse(words[1]);
+            float yPos = float.Parse(words[2]);
+            float zPos = float.Parse(words[3]);
+            int countDivisor = int.Parse(words[4]);
+            int scaleDivisor = int.Parse(words[5]);
+            uint frameRangeStart = uint.Parse(words[6]);
+            uint frameRangeEnd = uint.Parse(words[7]);
+
+            for (uint i = frameRangeStart; i < frameRangeEnd; i++)
+            {
+                templates.Add(
+                    new PointCloudTemplate(
+                        name,
+                        new Vector3(xPos, yPos, zPos),
+                        countDivisor,
+                        scaleDivisor,
+                        i
+                        ));
+                if(i == frameRangeStart)
+                {
+                    yPos += 100000;
+                }
+            }
+            return templates;
+        }
+        else throw new FileLoadException("Corrupted template (invalid argument count)");
+    }
 
     // Destroys all of the point cloud gameobjects. 
     public void ClearPointClouds()
@@ -78,9 +115,20 @@ public class ReadPointCloudRuntime : MonoBehaviour
         }
 
         int periodIndex = fileName.IndexOf(".");
-        return fileName.Substring(0, periodIndex);
+        return periodIndex != -1 ? fileName.Substring(0, periodIndex) : fileName;
     }
-    
+    // Returns the original string up until and excluding the first appearance of '.'.
+    private string getBaseObjectName(string fullName)
+    {
+        if (fullName is null)
+        {
+            throw new ArgumentNullException(nameof(fullName));
+        }
+
+        int periodIndex = fullName.IndexOf("_");
+        return periodIndex != -1 ? fullName.Substring(0, periodIndex) : RemoveFileExtension(fullName);
+    }
+
     // Loads a mesh of the given name with "_0001.obj" appended from the appropriate directory in the Meshes folder.
     private Mesh LoadCollisionMesh(string name, uint index)
     {
@@ -213,22 +261,23 @@ public class ReadPointCloudRuntime : MonoBehaviour
         rigidbody.AddTorque(new Vector3(0, 100000, 0), ForceMode.Force);
     }
 
-    void ParseTemplate(PointCloudTemplate cloudTemplate)
+    private void ParseTemplate(PointCloudTemplate cloudTemplate)
     {
-        using (StreamReader sr = new(cloudTemplate.GetName()))
+        try
         {
+            using StreamReader sr = new(
+                $"Assets//" +
+                $"Resources//" +
+                $"PointClouds//" +
+                $"{getBaseObjectName(cloudTemplate.GetName())}//" +
+                $"{getBaseObjectName(cloudTemplate.GetName())}_{ToLeadingZeroes4Digit(cloudTemplate.GetFrameIndex())}.ply");
             // Amount of points in the Point Cloud
-            uint pointCount = 0;
-
-            try
-            {
-                pointCount = ParseHeader(sr);
-                ParseAndEmit(sr, pointCount, cloudTemplate);
-            }
-            catch (Exception e)
-            {
-                print(e.Message);
-            }
+            uint pointCount = ParseHeader(sr);
+            ParseAndEmit(sr, pointCount, cloudTemplate);
+        }
+        catch (Exception e)
+        {
+            print(e.Message);
         }
     }
 
@@ -256,7 +305,14 @@ public class ReadPointCloudRuntime : MonoBehaviour
         // Parse the inspector variables to templates
         foreach (string request in requests)
         {
-            cloudTemplates.Add(ReadCloudTemplate(request));
+            if (IsRequestSingle(request))
+            {
+                cloudTemplates.Add(ReadCloudTemplate(request));
+            }
+            else if (IsRequestAnimation(request))
+            {
+                cloudTemplates.AddRange(ReadCloudTemplateAnimation(request));
+            }
         }
 
         foreach (PointCloudTemplate cloudTemplate in cloudTemplates)
@@ -267,11 +323,9 @@ public class ReadPointCloudRuntime : MonoBehaviour
                 GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName());
 
                 ParseTemplate(cloudTemplate);
-                // Collider initialisation
-                ApplyCollisionMesh(go, RemoveFileExtension(cloudTemplate.GetName()), 1);
-
-                // Rigidbody initialisation
+                ApplyCollisionMesh(go, getBaseObjectName(cloudTemplate.GetName()), 1);
                 SetupRigidbody(go);
+
                 // Adding SenveGlove-related scripts
                 String materialPath = "Assets//SenseGlove//Scripts//Feedback//SG_Material.cs";
                 MonoScript materialScript = AssetDatabase.LoadAssetAtPath<MonoScript>(materialPath);
@@ -304,7 +358,14 @@ public class ReadPointCloudRuntime : MonoBehaviour
         // Parse the inspector variables to templates
         foreach (string request in requests)
         {
-            cloudTemplates.Add(ReadCloudTemplate(request));
+            if (IsRequestSingle(request))
+            {
+                cloudTemplates.Add(ReadCloudTemplate(request));
+            }
+            else if (IsRequestAnimation(request))
+            {
+                cloudTemplates.AddRange(ReadCloudTemplateAnimation(request));
+            }
         }
 
         foreach (PointCloudTemplate cloudTemplate in cloudTemplates)
@@ -315,11 +376,9 @@ public class ReadPointCloudRuntime : MonoBehaviour
                 GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName());
 
                 ParseTemplate(cloudTemplate);
-                // Collider initialisation
-                ApplyCollisionMesh(go, RemoveFileExtension(cloudTemplate.GetName()), 1);
-
-                // Rigidbody initialisation
+                ApplyCollisionMesh(go, RemoveFileExtension(cloudTemplate.GetName()), cloudTemplate.GetFrameIndex());
                 SetupRigidbody(go);
+
                 // Adding SenveGlove-related scripts
                 String materialPath = "Assets//SenseGlove//Scripts//Feedback//SG_Material.cs";
                 MonoScript materialScript = AssetDatabase.LoadAssetAtPath<MonoScript>(materialPath);

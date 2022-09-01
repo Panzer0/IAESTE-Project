@@ -47,13 +47,15 @@ public class PointCloudTemplate
     private Vector3 offset;
     private readonly int countDivisor;
     private readonly int scaleDivisor;
+    private readonly uint frameIndex;
 
-    public PointCloudTemplate(string name, Vector3 offset, int countDivisor, int scaleDivisor)
+    public PointCloudTemplate(string name, Vector3 offset, int countDivisor, int scaleDivisor, uint frameIndex = 1)
     {
         this.name = name;
         this.offset = offset;
         this.countDivisor = countDivisor > 1 ? countDivisor : 1;
         this.scaleDivisor = scaleDivisor != 0 ? scaleDivisor : 1;
+        this.frameIndex = frameIndex;
     }
     
     public string GetName()
@@ -74,6 +76,10 @@ public class PointCloudTemplate
     public int GetCountDivisor()
     {
         return this.countDivisor;
+    }
+    public uint GetFrameIndex()
+    {
+        return this.frameIndex;
     }
 
     public override string ToString()
