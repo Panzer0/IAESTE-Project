@@ -7,9 +7,8 @@ public class PrevButton : MonoBehaviour
     GameObject nextButton;
     Vector3 defaultPosition;
     public Material[] slides;
+    public GameObject extraDisplay;
 
-    //TEMPORARY, FOR TESTING PURPOSES
-    private GameObject PCRenderer;
     private void OnTriggerEnter(Collider other)
     {
         if (other.name.Contains("ThumbCollider") || other.name.Contains("IndexCollider") || other.name.Contains("MiddleCollider"))
@@ -21,23 +20,21 @@ public class PrevButton : MonoBehaviour
                 if (currentSlide > 0)
                 {
                     this.display.GetComponent<MeshRenderer>().material = slides[--currentSlide];
+                    if (this.extraDisplay != null)
+                    {
+                        this.extraDisplay.GetComponent<MeshRenderer>().material = slides[currentSlide];
+                    }
                 }
             }
             catch (Exception)
             {
                 this.display.GetComponent<MeshRenderer>().material = slides[0];
+                if (this.extraDisplay != null)
+                {
+                    this.extraDisplay.GetComponent<MeshRenderer>().material = slides[0];
+                }
             }
         }
-        if (other.name.Contains("MiddleCollider"))
-        {
-            this.PCRenderer.GetComponent<ReadPointCloudRuntime>().ClearPointClouds();
-        }
-    }
-
-
-
-    private void OnTriggerStay(Collider other)
-    {
     }
 
     private void OnTriggerExit(Collider other)
@@ -47,13 +44,8 @@ public class PrevButton : MonoBehaviour
 
     private void Start()
     {
-        this.PCRenderer = GameObject.Find("PCRenderer").transform.GetChild(0).gameObject;
         this.display = GameObject.Find("Display");
         this.nextButton = GameObject.Find("ButtonLeft");
         this.defaultPosition = this.nextButton.transform.localPosition;
-    }
-
-    private void Update()
-    {
     }
 }

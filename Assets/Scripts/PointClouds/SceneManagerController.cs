@@ -1,15 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SceneManagerController : MonoBehaviour
 {
     public string buttonMethod;
     private PCSceneManager PCSceneManagerScript;
-    
+    private Swapper swapperScript;
+
     public void activateButton()
     {
-        switch(this.buttonMethod) 
+        switch (this.buttonMethod)
         {
             case "Advance":
                 this.PCSceneManagerScript.Advance();
@@ -20,8 +19,11 @@ public class SceneManagerController : MonoBehaviour
             case "StartOver":
                 this.PCSceneManagerScript.StartOver();
                 break;
-            case "Respawn": 
+            case "Respawn":
                 this.PCSceneManagerScript.Respawn();
+                break;
+            case "Swap":
+                this.swapperScript.TogglePaused();
                 break;
         }  
     }
@@ -30,6 +32,7 @@ public class SceneManagerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        this.PCSceneManagerScript = GameObject.Find("PCSceneManager").transform.GetChild(0).gameObject.GetComponent<PCSceneManager>();        
+        this.PCSceneManagerScript = GameObject.Find("PCSceneManager").transform.GetChild(0).gameObject.GetComponent<PCSceneManager>();
+        this.swapperScript = GameObject.Find("CanvasA").GetComponent<Swapper>();
     }
 }

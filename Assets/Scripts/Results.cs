@@ -8,7 +8,7 @@ using System.IO;
 public class Results : MonoBehaviour
 {
     private string fileName = "Assets/Files/Results/";
-    public string TesterName = "Harry Potter";
+    public string TesterName = "Paz Rivian";
     public string TestName = "Test3";
 
     private string output= "";
@@ -38,6 +38,36 @@ public class Results : MonoBehaviour
         selection = 3;
     }
 
+    public void ClearTest1()
+    {
+        for (int i = 0; i < sliders.Length; i++)
+        {
+            sliders[i].value = 0;
+        }
+        selection = 0;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].interactable = false;
+            buttons[i].interactable = true;
+        }
+    }
+    public void ClearTest2()
+    {
+        for (int i = 0; i < sliders.Length; i++)
+        {
+            sliders[i].value = 0;
+        }
+    }
+    public void ClearTest3()
+    {
+        selection = 0;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].interactable = false;
+            buttons[i].interactable = true;
+        }
+    }
+
     public void SaveResultsTest1(string part)
     {
         output = string.Format("{0}, {1}", TesterName, part);
@@ -57,8 +87,6 @@ public class Results : MonoBehaviour
             buttons[i].interactable = false;
             buttons[i].interactable = true;
         }
-
-
     }
 
     public void SaveResultsTest2(string part)

@@ -33,7 +33,7 @@ RectTransform:
   m_Children:
   - {fileID: 2454763446425829169}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -137,7 +137,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.54800004, y: 0}
   m_AnchorMax: {x: 1, y: 0.80300003}
-  m_AnchoredPosition: {x: -59.125004, y: 40.2}
+  m_AnchoredPosition: {x: -59.125004, y: 52.7}
   m_SizeDelta: {x: 221.15, y: -46.83758}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2454763445609619559
@@ -181,7 +181,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Welcome to UGent
+  m_Text: Welcome to UGent!
 --- !u!1 &2454763445820427987
 GameObject:
   m_ObjectHideFlags: 0
@@ -261,14 +261,17 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Thank you for taking part of this experiment!
+  m_Text: 'Thank you for taking part in this experiment!
 
-    To move from one step
-    to the next, you simply have to point at the red sphere with your controller.
-    Once the light beam turns white, press the select button.
+    In order to cycle between
+    mesh scenes, point at the red sphere with your controller. Once the light beam
+    turns white, press the select button.
 
-    Let''s give it
-    a try!'
+    In order to cycle between point cloud
+    scenes, review the tutorial on the wall to the right, then point at the blue
+    totem button and perform the "Confirm" gesture.
+
+    Let''s give it a try! '
 --- !u!1 &2454763446425829174
 GameObject:
   m_ObjectHideFlags: 0
@@ -306,7 +309,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2454763446425829171

@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   thumbFlexMin: 0
-  thumbFlexMax: 0.3
+  thumbFlexMax: 0.4
   indexFlexMin: 0
   indexFlexMax: 0.3
   middleFlexMin: 0.5

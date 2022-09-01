@@ -2,32 +2,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
-using static UnityEngine.ParticleSystem;
 using UnityEditor;
-
-
-// Contains basic information required to generate a new point cloud
 
 public class ReadPointCloudRuntime : MonoBehaviour
 {
+    // The amount of integer values each point consists of
+    private static readonly int INTS_PER_POINT = 6;
+
     private ParticleSystem particleSystem;
     public string[] requests;
     public PhysicMaterial collisionMaterial;
 
-    // The amount of integer values each point consists of
-    static readonly int INTS_PER_POINT = 6;
-
-    private List<GameObject> existingPointClouds;
+    public List<GameObject> existingPointClouds;
 
     // Returns an int from the end of a line
-    static int readLastInt(string line) {
+    static uint ReadLastUint(string line)
+    {
         string[] words = line.Split(' ');
-        return int.Parse(words[^1]);
+        return uint.Parse(words[^1]);
     }
 
     // Reads INTS_PER_POINT int values from a string and returns them as an array
-    static int[] readPoint(string line)
+    private static int[] ReadPoint(string line)
     {
+        if (line is null)
+        {
+            throw new ArgumentNullException(nameof(line));
+        }
+
         string[] words = line.Split(' ');
         // The row contains an invalid amount of values
         if (words.Length != INTS_PER_POINT)
@@ -43,57 +45,162 @@ public class ReadPointCloudRuntime : MonoBehaviour
     }
 
     // Reads INTS_PER_POINT int values from a string and returns them as an array
-    static PointCloudTemplate readCloudTemplate(string line)
+    private static PointCloudTemplate ReadCloudTemplate(string line)
     {
         string[] words = line.Split(' ');
         // The row contains an invalid amount of values
-        if (words.Length != 6)
-        {
-            throw new FileLoadException("Corrupted template (invalid argument count)");
-        }
-        return new PointCloudTemplate(
-            words[0], 
-            new Vector3(float.Parse(words[1]), float.Parse(words[2]), float.Parse(words[3])), 
-            int.Parse(words[4]), 
-            int.Parse(words[5])
-            );
+        return words.Length == 6
+            ? new PointCloudTemplate(
+                words[0],
+                new Vector3(float.Parse(words[1]), float.Parse(words[2]), float.Parse(words[3])),
+                int.Parse(words[4]),
+                int.Parse(words[5])
+                )
+            : throw new FileLoadException("Corrupted template (invalid argument count)");
     }
 
+    // Destroys all of the point cloud gameobjects. 
     public void ClearPointClouds()
     {
-        foreach(GameObject cloud in this.existingPointClouds)
+        foreach (GameObject cloud in this.existingPointClouds)
         {
-            Destroy(cloud.gameObject);
+            Destroy(cloud);
         }
         this.existingPointClouds.Clear();
     }
 
-    private string RemoveFileExtension(String fileName)
+    // Returns the original string up until and excluding the first appearance of '.'.
+    private string RemoveFileExtension(string fileName)
     {
+        if (fileName is null)
+        {
+            throw new ArgumentNullException(nameof(fileName));
+        }
+
         int periodIndex = fileName.IndexOf(".");
         return fileName.Substring(0, periodIndex);
     }
-
-    private Mesh LoadCollisionMesh(String name)
+    
+    // Loads a mesh of the given name with "_0001.obj" appended from the appropriate directory in the Meshes folder.
+    private Mesh LoadCollisionMesh(string name, uint index)
     {
-        //cloudTemplate.GetName()
-        String gameObjectPath = "Assets//Resources//Meshes//" +
-            name + "//depth_7//Stl//" +
-            name + "_0001.obj";
+        string gameObjectPath = $"Assets//Resources//Meshes//{name}//depth_7//Stl//{name}_{ToLeadingZeroes4Digit(index)}.obj";
         GameObject tempGameObject = AssetDatabase.LoadAssetAtPath<GameObject>(gameObjectPath).transform.GetChild(0).gameObject;
         MeshFilter collisionMeshFilter = tempGameObject.GetComponent<MeshFilter>();
         return collisionMeshFilter.sharedMesh;
     }
 
-    public void RenderPointClouds(List<String> requests)
+    private string ToLeadingZeroes4Digit(uint value) => value switch
     {
-        ///////// CONFIGURATION /////////
-        List<PointCloudTemplate> cloudTemplates = new();
+        <= 9 => $"000{value}",
+        <= 99 => $"00{value}",
+        <= 999 => $"0{value}",
+        _ => value.ToString(),
+    };
 
+    private GameObject CreateParticleSystemObject(String name)
+    {
+        // particleSystem game object creation
+        Material particleMaterial = new(Shader.Find("Particles/Standard Unlit"));
+        GameObject go = new(name)
+        {
+            tag = "Interactable"
+        };
+        this.existingPointClouds.Add(go);
+        particleSystem = go.AddComponent<ParticleSystem>();
+        go.GetComponent<ParticleSystemRenderer>().material = particleMaterial;
+        particleSystem.maxParticles = 2000000;
+        particleSystem.enableEmission = false;
+        return go;
+    }
+
+    private uint ParseHeader(StreamReader sr)
+    {
+        // Current line
+        string line;
+        // File validity flags
+        bool gotCount = false;
+        bool gotEndHeader = false;
+        uint pointCount = 0;
+        // Header parsing
+        while ((line = sr.ReadLine()) != null)
+        {
+            // Point count definition reached
+            if (line.StartsWith("element vertex "))
+            {
+                // Size can't be defined twice!
+                if (gotCount)
+                {
+                    throw new FileLoadException("Double size definition");
+                }
+                pointCount = ReadLastUint(line);
+                gotCount = true;
+            }
+            // End of header reached
+            if (line.Equals("end_header"))
+            {
+                gotEndHeader = true;
+                break;
+            }
+        }
+
+        // Header integrity validation
+        if (!(gotCount && gotEndHeader))
+        {
+            throw new FileLoadException("Missing header information");
+        }
+        else
+        {
+            return pointCount;
+        }
+    }
+
+    private void ParseAndEmit(StreamReader sr, uint pointCount, PointCloudTemplate cloudTemplate)
+    {
+        // Iterate over each point in the file
+        for (int i = 0; i < pointCount; i++)
+        {
+            string line = sr.ReadLine();
+            // End of file reached before finding the promised amount of points
+            if (line == null)
+            {
+                throw new FileLoadException("Insufficient points");
+            }
+            // Read and emit the point
+            if (i % cloudTemplate.GetCountDivisor() == 0)   // Omit countDivisor-1 points for each read one
+            {
+                int[] pointParams = ReadPoint(line);
+                // Initialise new particle
+                ParticleSystem.EmitParams emitParams = new()
+                {
+                    position = new Vector3(-1 * pointParams[0], pointParams[1], pointParams[2]),
+                    velocity = new Vector3(0, 0, 0),
+                    startSize = (float)Math.Sqrt((float)cloudTemplate.GetCountDivisor()),
+                    startLifetime = 100000,
+                    startColor = new Color32(
+                        Convert.ToByte(pointParams[3]),
+                        Convert.ToByte(pointParams[4]),
+                        Convert.ToByte(pointParams[5]), 255)
+                };
+                particleSystem.Emit(emitParams, 1);
+            }
+        }
+    }
+
+
+
+   /*
+    * Renders a set of point clouds from the arguments passed in "requests" under the following format:
+    * [file name] [x offset] [y offset] [z offset] [Point amount divisor] [Scale divisor]
+    * The point clouds are rendered as particle systems attached to new game objects
+    */
+    public void RenderPointClouds(List<string> requests)
+    {
+        List<PointCloudTemplate> cloudTemplates = new();
         // Parse the inspector variables to templates
         foreach (string request in requests)
         {
-            cloudTemplates.Add(readCloudTemplate(request));
+            cloudTemplates.Add(ReadCloudTemplate(request));
         }
 
         foreach (PointCloudTemplate cloudTemplate in cloudTemplates)
@@ -101,113 +208,41 @@ public class ReadPointCloudRuntime : MonoBehaviour
             print("Currently parsing " + cloudTemplate.GetName());
 
             // Loading collider mesh
-            Mesh collisionMesh = LoadCollisionMesh(RemoveFileExtension(cloudTemplate.GetName()));
+            Mesh collisionMesh = LoadCollisionMesh(RemoveFileExtension(cloudTemplate.GetName()), 1);
 
             try
             {
-                // particleSystem game object creation
-                Material particleMaterial = new(Shader.Find("Particles/Standard Unlit"));
-                var go = new GameObject("Particle System " + cloudTemplate.GetName());
-                this.existingPointClouds.Add(go);
-                particleSystem = go.AddComponent<ParticleSystem>();
-                go.GetComponent<ParticleSystemRenderer>().material = particleMaterial;
-                particleSystem.maxParticles = 2000000;
-                particleSystem.enableEmission = false;
+                GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName()); 
 
                 using (StreamReader sr = new(cloudTemplate.GetName()))
                 {
-                    // Current line
-                    string line;
                     // Amount of points in the Point Cloud
-                    int pointCount = 0;
-                    // File validity flags
-                    bool gotCount = false;
-                    bool gotEndHeader = false;
+                    uint pointCount = 0;
 
-
-                    // Header parsing
-                    while ((line = sr.ReadLine()) != null)
+                    try
                     {
-                        // Point count definition reached
-                        if (line.StartsWith("element vertex "))
-                        {
-                            // Size can't be defined twice!
-                            if (gotCount)
-                            {
-                                throw new FileLoadException("Double size definition");
-                            }
-                            pointCount = readLastInt(line);
-                            gotCount = true;
-                        }
-                        // End of header reached
-                        if (line.Equals("end_header"))
-                        {
-                            gotEndHeader = true;
-                            break;
-                        }
-
+                        pointCount = ParseHeader(sr);
+                        ParseAndEmit(sr, pointCount, cloudTemplate);
                     }
-
-                    // Header integrity validation
-                    if (!(gotCount && gotEndHeader))
+                    catch (Exception e)
                     {
-                        throw new FileLoadException("Missing header information");
-                    }
-
-                    // Obsolete, points are no longer stored
-                    // pointArray = new ParticleParams[pointCount / cloudTemplate.getCountDivisor() + 1];
-
-                    // Iterate over each point in the file
-                    for (int i = 0; i < pointCount; i++)
-                    {
-                        line = sr.ReadLine();
-                        // End of file reached before finding the promised amount of points
-                        if (line == null)
-                        {
-                            throw new FileLoadException("Insufficient points");
-                        }
-                        // Read and emit the point
-                        if (i % cloudTemplate.GetCountDivisor() == 0)   // Omit countDivisor-1 points for each read one
-                        {
-                            int[] pointParams = readPoint(line);
-                            var emitParams = new ParticleSystem.EmitParams
-                            {
-                                position = new Vector3(-1 * pointParams[0], pointParams[1], pointParams[2]),
-                                velocity = new Vector3(0, 0, 0),
-                                startSize = (float)Math.Sqrt((float)cloudTemplate.GetCountDivisor()),
-                                startLifetime = 100000,
-                                startColor = new Color32(
-                                    Convert.ToByte(pointParams[3]),
-                                    Convert.ToByte(pointParams[4]),
-                                    Convert.ToByte(pointParams[5]), 255)
-                            };
-                            particleSystem.Emit(emitParams, 1);
-                        }
+                        print(e.Message);
                     }
                 }
-
-
-
                 // Collider initialisation
-                var collider = go.AddComponent<MeshCollider>();
+                MeshCollider collider = go.AddComponent<MeshCollider>();
                 collider.convex = true;
                 collider.sharedMesh = collisionMesh;
                 collider.sharedMaterial = collisionMaterial;
 
-                var rigidbody = go.AddComponent<Rigidbody>();
+                // Rigidbody initialisation
+                Rigidbody rigidbody = go.AddComponent<Rigidbody>();
                 rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
 
                 // Adding SenveGlove-related scripts
-                //String grabablePath = "Assets//SenseGlove//Scripts//Interaction//SG_Grabable.cs";
-                //MonoScript grabableScript = AssetDatabase.LoadAssetAtPath<MonoScript>(grabablePath);
                 String materialPart = "Assets//SenseGlove//Scripts//Feedback//SG_Material.cs";
                 MonoScript materialScript = AssetDatabase.LoadAssetAtPath<MonoScript>(materialPart);
-
-                //go.AddComponent(grabableScript.GetClass());
                 go.AddComponent(materialScript.GetClass());
-
-
-                go.tag = "Interactable";
 
                 // ParticleSystem adjustments
                 particleSystem.transform.localScale =
@@ -216,23 +251,6 @@ public class ReadPointCloudRuntime : MonoBehaviour
                         1f / cloudTemplate.GetScaleDivisor(),
                         1f / cloudTemplate.GetScaleDivisor());
                 particleSystem.transform.position = cloudTemplate.GetOffset();
-
-                //TEMPORARY CENTRE OF MASS PARTICLE FOR TESTING PURPOSES
-                // todo: Remove
-                var emitParamsTemp = new ParticleSystem.EmitParams
-                {
-                    position = rigidbody.centerOfMass,
-                    velocity = Vector3.zero,
-                    startSize = (float)Math.Sqrt((float)cloudTemplate.GetCountDivisor() * 10),
-                    startLifetime = 100000,
-                    startColor = new Color32(255, 255, 255, 255)
-                };
-                particleSystem.Emit(emitParamsTemp, 1);
-
-                //go.GetComponent<RectTransform>().pivot = rigidbody.centerOfMass;
-                //GameObject pivotGameObject = new GameObject("pivot");
-                //pivotGameObject.transform.position = rigidbody.centerOfMass;
-                //go.transform.SetParent(pivotGameObject.transform);
 
                 // Setting default drag values
                 rigidbody.drag = 10;
@@ -252,10 +270,5 @@ public class ReadPointCloudRuntime : MonoBehaviour
     void Start()
     {
         existingPointClouds = new();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
     }
 }

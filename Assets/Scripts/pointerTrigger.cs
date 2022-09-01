@@ -2,7 +2,6 @@ using SG;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -27,11 +26,11 @@ public class pointerTrigger : MonoBehaviour
     private GameObject tablet;
     private GameObject mainCamera;
 
-    Transform cameraTransform;
-
-    Vector3 thinVector;
-    Vector3 defaultVector;
-    Vector3 thickVector;
+    private Transform cameraTransform;
+    
+    private Vector3 thinVector;
+    private Vector3 defaultVector;
+    private Vector3 thickVector;
     
     private float rightHandStartY = 0;
     private float rightHandStartX = 0;
@@ -40,51 +39,55 @@ public class pointerTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Interactable"))
+        if (other.CompareTag("Interactable") || other.CompareTag("Button") || other.CompareTag("HapticButton") || other.CompareTag("SliderButton"))
         {
             triggerPointer.GetComponent<MeshRenderer>().material = activeMaterial;
-            Vector3 rightHandStartPosition = rightHand.transform.position;
-            rightHandStartY = rightHandStartPosition.y;
-
-            // Find relative position
-            this.cameraTransform = mainCamera.transform;
-            var relativePos = cameraTransform.InverseTransformPoint(rightHand.transform.position);
-
-            // Get the angle in radians for cosine
-            float cosAngle = Mathf.Atan2(relativePos.z, relativePos.x);
-
-            // Get offset on object A's x axis
-            rightHandStartX = Mathf.Cos(cosAngle) * relativePos.magnitude;
-        }
-        else if(other.CompareTag("Button") || other.CompareTag("HapticButton"))
-        {
-            triggerPointer.GetComponent<MeshRenderer>().material = activeMaterial;
-        }
-        else if (other.CompareTag("SliderButton"))
-        {
-            triggerPointer.GetComponent<MeshRenderer>().material = activeMaterial;  
-            if(!leftGunSingleGesture.IsGesturing && leftFingerPointGesture.IsGesturing)
+            if (other.CompareTag("Interactable"))
             {
-                int sliderSegment = Convert.ToInt32(other.name.Split(" ")[1]);
-                other.transform.parent.transform.parent.GetComponent<Slider>().value = sliderSegment;
+                Vector3 rightHandStartPosition = rightHand.transform.position;
+                rightHandStartY = rightHandStartPosition.y;
+
+                // Find relative position
+                this.cameraTransform = mainCamera.transform;
+                Vector3 relativePos = cameraTransform.InverseTransformPoint(rightHand.transform.position);
+
+                // Get the angle in radians for cosine
+                float cosAngle = Mathf.Atan2(relativePos.z, relativePos.x);
+
+                // Get offset on object A's x axis
+                rightHandStartX = Mathf.Cos(cosAngle) * relativePos.magnitude;
+            }
+            if (other.CompareTag("SliderButton"))
+            {
+                if (!leftGunSingleGesture.IsGesturing && leftFingerPointGesture.IsGesturing)
+                {
+                    int sliderSegment = Convert.ToInt32(other.name.Split(" ")[1]);
+                    other.transform.parent.transform.parent.GetComponent<Slider>().value = sliderSegment;
+                }
             }
         }
     }
-
+    /*
+     * Removes all of the forces affecting the object, effectively freezing it.
+     * New forces can still influence it normally.
+     * If the target's name starts with "Point Cloud" and doesn't have the appropriate constraints, 
+     * the method resets the point cloud's rotation and vertical position, effectively making it stationary.
+     * The aforementioned doesn't apply to the tests and was historically applied in a context where
+     * point clouds had no constraints and could be displaced freely.
+     */
     private void MakeStand(Collider other)
     {
         Vector3 targetPosition = other.transform.position;
         targetPosition.y = 0.1f;
         Rigidbody rgbody = other.GetComponent<Rigidbody>();
         // Fixing point clouds if they've been grabbed
-        if(other.name.StartsWith("Point Cloud"))
+        if (other.name.StartsWith("Point Cloud"))
         {
-            RigidbodyConstraints stationaryConstraints = 
+            RigidbodyConstraints stationaryConstraints =
                 RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
-            if(rgbody.constraints != stationaryConstraints)
+            if (rgbody.constraints != stationaryConstraints)
             {
-                other.transform.position = targetPosition;
-                other.transform.rotation = new Quaternion(0, 0, 0, 0);
+                other.transform.SetPositionAndRotation(targetPosition, new Quaternion(0, 0, 0, 0));
                 rgbody.constraints = stationaryConstraints;
             }
         }
@@ -92,19 +95,29 @@ public class pointerTrigger : MonoBehaviour
         rgbody.angularVelocity = Vector3.zero;
         rgbody.angularDrag = 0.05f;
     }
-
+    /*
+     * Normalise the passed Vector3 to the <-1, 1> range.
+     * A zero vector will remain unaffected.
+     */
     private Vector3 NormaliseVector3(Vector3 inputVector)
     {
-        if(inputVector.Equals(Vector3.zero))
+        if (inputVector.Equals(Vector3.zero))
         {
             return inputVector;
         }
-        List<float> list = new() { inputVector.x, 0, inputVector.z};
+        List<float> list = new() { inputVector.x, 0, inputVector.z };
         List<float> absoluteList = list.Select(x => Math.Abs(x)).ToList();
         list = list.Select(x => x / Math.Abs(absoluteList.Max())).ToList();
         return new Vector3(list[0], list[1], list[2]);
     }
 
+    /*
+     *  Scale the object proportionally.
+     *  The hand's starting height is calculated when the pointer comes in touch with the object;
+     *  as such one can point away and back to the object in order to restart the starting position.
+     *  Due to the fact objects affected by a swapper are separate objects, each swap resets the starting position;
+     *  a solution to this problem has yet to be found.
+     */
     private void ScaleByGesture(Collider other)
     {
         float currentY = rightHand.transform.position.y;
@@ -127,10 +140,20 @@ public class pointerTrigger : MonoBehaviour
             other.transform.localScale *= handDistance > 0.25 ? 0.997f : 0.999f;
         }
     }
-
+    /*
+     *  Rotate the other object around the other axis. 
+     *  The rotation is applied by torque.
+     *  The other object must contain a rigidbody component.
+     *  Due to the fact the hand movement is calculated relative to the headset's position, 
+     *  moving the headset will achieve results opposite of the equivalent hand movement.
+     *  The hand's relative starting position is calculated when the pointer comes in touch with the object;
+     *  as such one can point away and back to the object in order to restart the starting position.
+     *  Due to the fact objects affected by a swapper are separate objects, each swap resets the starting position;
+     *  a solution to this problem has yet to be found.
+     */
     private void RotateByGesture(Collider other)
     {
-        var relativePos = cameraTransform.InverseTransformPoint(rightHand.transform.position);
+        Vector3 relativePos = cameraTransform.InverseTransformPoint(rightHand.transform.position);
         float cosAngle = Mathf.Atan2(relativePos.z, relativePos.x);
         float currentOffset = Mathf.Cos(cosAngle) * relativePos.magnitude;
 
@@ -150,10 +173,12 @@ public class pointerTrigger : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        // If the other object is a haptic button, i.e. a totem button.
         if (other.CompareTag("HapticButton") && leftGunSingleGesture.GestureStopped && leftFingerPointGesture.IsGesturing)
         {
             other.GetComponent<SceneManagerController>().activateButton();
         }
+        // If the other object is an UI button, i.e. a canvas slider or button
         if (other.CompareTag("Button") && leftGunSingleGesture.GestureStopped && leftFingerPointGesture.IsGesturing)
         {
             print("ACTIVATED BUTTON " + other.name);
@@ -161,33 +186,33 @@ public class pointerTrigger : MonoBehaviour
             ExecuteEvents.Execute(button.gameObject, new BaseEventData(EventSystem.current), ExecuteEvents.submitHandler);
             button.Select();
         }
+        // If the other object is an interactable, i.e. contains a rigidbody
         if (other.CompareTag("Interactable"))
         {
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // THUMB UP, INDEX CONTROLS - PUSHING AND PULLING
             bool isThumbUp = rightThumbUpGesture.IsGesturing;
             bool isGunSingle = rightGunSingleGesture.IsGesturing;
             if (isGunSingle)
             {
+                // Pull
                 other.GetComponent<Rigidbody>().AddForce(NormaliseVector3(other.transform.position - rightHand.transform.position) * 10);
             }
             else if (isThumbUp)
             {
+                // Push
                 other.GetComponent<Rigidbody>().AddForce(NormaliseVector3(other.transform.position - rightHand.transform.position) * -10);
             }
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       
             // THUMB UP, DOUBLE BARRELED FINGER GUN - STAND UP
             bool isGunDouble = rightGunDoubleGesture.IsGesturing;
-            if(isGunDouble)
+            if (isGunDouble)
             {
                 MakeStand(other);
             }
 
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // VERTICAL AXIS - SCALING
             ScaleByGesture(other);
 
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // HORIZONTAL AXIS - ROTATION
             RotateByGesture(other);
         }
@@ -195,45 +220,44 @@ public class pointerTrigger : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Interactable"))
+        if (other.CompareTag("Interactable") || other.CompareTag("Button") || other.CompareTag("HapticButton") || other.CompareTag("SliderButton"))
         {
-            // Hide the pointer
-            triggerPointer.transform.localScale = this.defaultVector;
-            triggerPointer.GetComponent<MeshRenderer>().material = inactiveMaterial;
-            // Ensure that objects abandoned in the middle of a rotation gesture continue to rotate
-            other.GetComponent<Rigidbody>().angularDrag = 0;
-        }
-        if (other.CompareTag("Button") || other.CompareTag("HapticButton"))
-        {
-            triggerPointer.transform.localScale = this.defaultVector;
-            triggerPointer.GetComponent<MeshRenderer>().material = inactiveMaterial;   
+            // If the exit was not a result of the gesture stopping
+            if (this.leftFingerPointGesture.IsGesturing)
+            {
+                // Hide the pointer
+                triggerPointer.transform.localScale = this.defaultVector;
+                triggerPointer.GetComponent<MeshRenderer>().material = inactiveMaterial;
+            }
+            if (other.CompareTag("Interactable"))
+            {
+                // Ensure that objects abandoned in the middle of a rotation gesture continue to rotate
+                other.GetComponent<Rigidbody>().angularDrag = 0;
+            }
         }
     }
     private void ToggleActive()
     {
         this.isActive = !this.isActive;
         triggerPointer.transform.localScale = this.isActive ? this.defaultVector : Vector3.zero;
-        print("Toggled pointer, now it is" + this.triggerPointer.activeSelf);
     }
     private void ActivatePointer()
     {
         this.isActive = true;
         triggerPointer.transform.localScale = this.defaultVector;
-        print("Activated pointer, now it is" + this.triggerPointer.activeSelf);
     }
     private void DeactivatePointer()
     {
         this.isActive = false;
         triggerPointer.transform.localScale = Vector3.zero;
-        print("Deactivated pointer, now it is" + this.triggerPointer.activeSelf);
     }
 
     private void Start()
     {
         // Find needed game objects
         this.triggerPointer = GameObject.Find("FingerPointer");
-        this.tablet= GameObject.Find("TutorialPad");
-        this.mainCamera= GameObject.Find("Main Camera");
+        this.tablet = GameObject.Find("TutorialPad");
+        this.mainCamera = GameObject.Find("Main Camera");
 
         // Initialise the left hand's gestures
         leftGestureLayer = GameObject.Find("SGHand Left").transform.Find("Gesture Layer").gameObject;
@@ -253,47 +277,42 @@ public class pointerTrigger : MonoBehaviour
         this.thinVector = new Vector3(0.00001f, 0.05f, 0.00001f);
         this.defaultVector = new Vector3(0.00005f, 0.05f, 0.00005f);
         this.thickVector = new Vector3(0.0001f, 0.05f, 0.0001f);
-
-        print("Start sequence completed");
     }
 
+    // Teleports the tutorial tablet in front of the player's head
     private void SummonTablet()
     {
         Rigidbody tabletRB = this.tablet.GetComponent<Rigidbody>();
+        // Move in front of the player's eyes
+        this.tablet.transform.position =
+            mainCamera.transform.position + (mainCamera.transform.forward * 0.75f);
+        // Make vertical
+        this.tablet.transform.localRotation = new Quaternion(-0.707106829f, 0, 0, 0.707106829f);
         // Remove all velocity applied to the object
         tabletRB.velocity = Vector3.zero;
         tabletRB.angularVelocity = Vector3.zero;
-        // Move in front of the player's eyes
-        this.tablet.transform.position = 
-            mainCamera.transform.position + mainCamera.transform.forward * 0.75f;
-        // Make vertical
-        this.tablet.transform.localRotation = new Quaternion(-0.707106829f, 0, 0, 0.707106829f);
         // Make rotate around the Y axis
         tabletRB.AddTorque(new Vector3(0, 2, 0), ForceMode.Force);
     }
 
     private void Update()
     {
-        if(leftThumbHiddenGesture.GestureMade)
+        // Summon the tablet if the appropriate gesture is performed
+        if (leftThumbHiddenGesture.GestureMade)
         {
             this.SummonTablet();
         }
-        if ((this.isActive && leftFingerPointGesture.GestureStopped) || (!this.isActive && leftFingerPointGesture.GestureMade))
+
+        // If the 
+        if (this.isActive && !leftFingerPointGesture.IsGesturing)
         {
-            if(this.isActive && leftFingerPointGesture.GestureStopped)
-            {
-                print("Turning off because active = " + this.isActive + " and stopped = " + leftFingerPointGesture.GestureStopped );
-                DeactivatePointer();
-            }
-            else if(!this.isActive && leftFingerPointGesture.GestureMade)
-            {
-                print("Turning on because active = " + this.isActive + " and made = " + leftFingerPointGesture.GestureMade);
-                ActivatePointer();
-            }
-            else
-            {
-                print("Another thread is messing with my variables");
-            }
+            //print("Turning off because active = " + this.isActive + " and stopped = " + leftFingerPointGesture.GestureStopped );
+            DeactivatePointer();
+        }
+        else if (!this.isActive && leftFingerPointGesture.IsGesturing)
+        {
+            //print("Turning on because active = " + this.isActive + " and made = " + leftFingerPointGesture.GestureMade);
+            ActivatePointer();
         }
     }
 }
