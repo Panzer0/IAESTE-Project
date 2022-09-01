@@ -30,7 +30,7 @@ public class PCSceneManager : MonoBehaviour
                 "Once you're sure of your answers, perform the \"Confirm\" gesture on the blue totem button to proceed.";
 
     private readonly string ACTIVE_INSTRUCTIONS_2 =
-                "Each of the point clouds has a different set of qualities that it cycle through. " +
+                "Each of the point clouds has a different set of qualities that it cycles through. " +
                 "Use the scales to rate their overall quality and the noticeability of the changes. " +
                 "Once you're sure of your answers, perform the \"Confirm\" gesture on the blue totem button to proceed.";
 
@@ -274,21 +274,21 @@ public class PCSceneManager : MonoBehaviour
             case 1:
                 this.scenes.Add(new()
                 {
-                    $"longdress.ply 2 {defaultHeight} 2 25 550",
-                    $"longdress.ply -2 {defaultHeight} 2 50 550",
-                    $"longdress.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"longdress.ply 2 {defaultHeight} -2 100 550"
+                    $"longdress_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"longdress_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"longdress_0001.ply -2.7 {defaultHeight} -2.7 75 550",
+                    $"longdress_0001.ply 2 {defaultHeight} -2 100 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier.ply 2 {defaultHeight} 2 25 550",
-                    $"soldier.ply -2 {defaultHeight} 2 50 550",
-                    $"soldier.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"soldier.ply 2 {defaultHeight} -2 100 550"
+                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
+                    $"soldier_0001.ply -2 {defaultHeight} 2 50 550",
+                    $"soldier_0001.ply -2.7 {defaultHeight} -2.7 75 550",
+                    $"soldier_0001.ply 2 {defaultHeight} -2 100 550"
                 });
                 this.scenes.Add(new()
                 {
-                    $"redandblack.ply 2 {defaultHeight} 2 25 550",
+                    $"redandblack_0001.ply 2 {defaultHeight} 2 25 550",
                     $"redandblack.ply -2 {defaultHeight} 2 50 550",
                     $"redandblack.ply -2.7 {defaultHeight} -2.7 75 550",
                     $"redandblack.ply 2 {defaultHeight} -2 100 550"

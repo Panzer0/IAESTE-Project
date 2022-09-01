@@ -89,6 +89,14 @@ public class ReadPointCloudRuntime : MonoBehaviour
         MeshFilter collisionMeshFilter = tempGameObject.GetComponent<MeshFilter>();
         return collisionMeshFilter.sharedMesh;
     }
+    void ApplyCollisionMesh(GameObject targetObject, String meshType, uint frameIndex)
+    {
+        Mesh collisionMesh = LoadCollisionMesh(meshType, frameIndex);
+        MeshCollider collider = targetObject.AddComponent<MeshCollider>();
+        collider.convex = true;
+        collider.sharedMesh = collisionMesh;
+        collider.sharedMaterial = collisionMaterial;
+    }
 
     private string ToLeadingZeroes4Digit(uint value) => value switch
     {
@@ -187,13 +195,61 @@ public class ReadPointCloudRuntime : MonoBehaviour
         }
     }
 
+    private void SetupRigidbody(GameObject targetObject)
+    {
+        Rigidbody rigidbody = targetObject.AddComponent<Rigidbody>();
+        rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;  
+    }
 
+    private void ApplyRotation(GameObject targetObject)
+    {
+        Rigidbody rigidbody = targetObject.GetComponent<Rigidbody>();
 
-   /*
-    * Renders a set of point clouds from the arguments passed in "requests" under the following format:
-    * [file name] [x offset] [y offset] [z offset] [Point amount divisor] [Scale divisor]
-    * The point clouds are rendered as particle systems attached to new game objects
-    */
+        // Setting default drag values
+        rigidbody.drag = 10;
+        rigidbody.angularDrag = 0;
+
+        // Making the object rotate by default
+        rigidbody.AddTorque(new Vector3(0, 100000, 0), ForceMode.Force);
+    }
+
+    void ParseTemplate(PointCloudTemplate cloudTemplate)
+    {
+        using (StreamReader sr = new(cloudTemplate.GetName()))
+        {
+            // Amount of points in the Point Cloud
+            uint pointCount = 0;
+
+            try
+            {
+                pointCount = ParseHeader(sr);
+                ParseAndEmit(sr, pointCount, cloudTemplate);
+            }
+            catch (Exception e)
+            {
+                print(e.Message);
+            }
+        }
+    }
+
+    bool IsRequestAnimation(String request)
+    {
+        string[] words = request.Split(' ');
+        // The row contains an invalid amount of values
+        return words.Length == 8;
+    }
+    bool IsRequestSingle(String request)
+    {
+        string[] words = request.Split(' ');
+        // The row contains an invalid amount of values
+        return words.Length == 6;
+    }
+
+    /*
+     * Renders a set of point clouds from the arguments passed in "requests" under the following format:
+     * [file name] [x offset] [y offset] [z offset] [Point amount divisor] [Scale divisor]
+     * The point clouds are rendered as particle systems attached to new game objects
+     */
     public void RenderPointClouds(List<string> requests)
     {
         List<PointCloudTemplate> cloudTemplates = new();
@@ -206,42 +262,19 @@ public class ReadPointCloudRuntime : MonoBehaviour
         foreach (PointCloudTemplate cloudTemplate in cloudTemplates)
         {
             print("Currently parsing " + cloudTemplate.GetName());
-
-            // Loading collider mesh
-            Mesh collisionMesh = LoadCollisionMesh(RemoveFileExtension(cloudTemplate.GetName()), 1);
-
             try
             {
-                GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName()); 
+                GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName());
 
-                using (StreamReader sr = new(cloudTemplate.GetName()))
-                {
-                    // Amount of points in the Point Cloud
-                    uint pointCount = 0;
-
-                    try
-                    {
-                        pointCount = ParseHeader(sr);
-                        ParseAndEmit(sr, pointCount, cloudTemplate);
-                    }
-                    catch (Exception e)
-                    {
-                        print(e.Message);
-                    }
-                }
+                ParseTemplate(cloudTemplate);
                 // Collider initialisation
-                MeshCollider collider = go.AddComponent<MeshCollider>();
-                collider.convex = true;
-                collider.sharedMesh = collisionMesh;
-                collider.sharedMaterial = collisionMaterial;
+                ApplyCollisionMesh(go, RemoveFileExtension(cloudTemplate.GetName()), 1);
 
                 // Rigidbody initialisation
-                Rigidbody rigidbody = go.AddComponent<Rigidbody>();
-                rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
-
+                SetupRigidbody(go);
                 // Adding SenveGlove-related scripts
-                String materialPart = "Assets//SenseGlove//Scripts//Feedback//SG_Material.cs";
-                MonoScript materialScript = AssetDatabase.LoadAssetAtPath<MonoScript>(materialPart);
+                String materialPath = "Assets//SenseGlove//Scripts//Feedback//SG_Material.cs";
+                MonoScript materialScript = AssetDatabase.LoadAssetAtPath<MonoScript>(materialPath);
                 go.AddComponent(materialScript.GetClass());
 
                 // ParticleSystem adjustments
@@ -251,13 +284,55 @@ public class ReadPointCloudRuntime : MonoBehaviour
                         1f / cloudTemplate.GetScaleDivisor(),
                         1f / cloudTemplate.GetScaleDivisor());
                 particleSystem.transform.position = cloudTemplate.GetOffset();
+                ApplyRotation(go);
+            }
+            catch (Exception e)
+            {
+                print("The file could not be read:");
+                print(e.Message);
+            }
+        }
+    }
+    /*
+     * Renders a set of point clouds from the arguments passed in "requests" under the following format:
+     * [file name] [x offset] [y offset] [z offset] [Point amount divisor] [Scale divisor] [frame range start] [frame range end (non-inclusive)]
+     * The point clouds are rendered as particle systems attached to new game objects
+     */
+    public void RenderPointCloudAnimation(List<string> requests)
+    {
+        List<PointCloudTemplate> cloudTemplates = new();
+        // Parse the inspector variables to templates
+        foreach (string request in requests)
+        {
+            cloudTemplates.Add(ReadCloudTemplate(request));
+        }
 
-                // Setting default drag values
-                rigidbody.drag = 10;
-                rigidbody.angularDrag = 0;
+        foreach (PointCloudTemplate cloudTemplate in cloudTemplates)
+        {
+            print("Currently parsing " + cloudTemplate.GetName());
+            try
+            {
+                GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName());
 
-                // Making the object rotate by default
-                rigidbody.AddTorque(new Vector3(0, 100000, 0), ForceMode.Force);
+                ParseTemplate(cloudTemplate);
+                // Collider initialisation
+                ApplyCollisionMesh(go, RemoveFileExtension(cloudTemplate.GetName()), 1);
+
+                // Rigidbody initialisation
+                SetupRigidbody(go);
+                // Adding SenveGlove-related scripts
+                String materialPath = "Assets//SenseGlove//Scripts//Feedback//SG_Material.cs";
+                MonoScript materialScript = AssetDatabase.LoadAssetAtPath<MonoScript>(materialPath);
+                go.AddComponent(materialScript.GetClass());
+
+                // ParticleSystem adjustments
+                particleSystem.transform.localScale =
+                    new Vector3(
+                        1f / cloudTemplate.GetScaleDivisor(),
+                        1f / cloudTemplate.GetScaleDivisor(),
+                        1f / cloudTemplate.GetScaleDivisor());
+                particleSystem.transform.position = cloudTemplate.GetOffset();
+                ApplyRotation(go);
             }
             catch (Exception e)
             {

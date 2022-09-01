@@ -32,7 +32,7 @@ public class SceneManagerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        this.PCSceneManagerScript = GameObject.Find("PCSceneManager").transform.GetChild(0).gameObject.GetComponent<PCSceneManager>();
+        this.PCSceneManagerScript = GameObject.Find("SceneManagerScript").GetComponent<PCSceneManager>();
         this.swapperScript = GameObject.Find("CanvasA").GetComponent<Swapper>();
     }
 }

@@ -16,7 +16,7 @@ public class Swapper : MonoBehaviour
 
     void Start()
     {
-        this.PCSceneManagerScript = GameObject.Find("PCSceneManager").transform.GetChild(0).gameObject.GetComponent<PCSceneManager>();
+        this.PCSceneManagerScript = GameObject.Find("SceneManagerScript").GetComponent<PCSceneManager>();
     }
 
     public void PauseCycle()
