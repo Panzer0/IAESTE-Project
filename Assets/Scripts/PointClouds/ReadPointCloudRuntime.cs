@@ -323,7 +323,7 @@ public class ReadPointCloudRuntime : MonoBehaviour
                 GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName());
 
                 ParseTemplate(cloudTemplate);
-                ApplyCollisionMesh(go, getBaseObjectName(cloudTemplate.GetName()), 1);
+                ApplyCollisionMesh(go, getBaseObjectName(cloudTemplate.GetName()), cloudTemplate.GetFrameIndex());
                 SetupRigidbody(go);
 
                 // Adding SenveGlove-related scripts

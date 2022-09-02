@@ -52,7 +52,7 @@ public class PCSceneManager : MonoBehaviour
                 "In order to cycle between point cloud scenes, review the tutorial on the wall to the right, then point at the blue totem button and perform the \"Confirm\" gesture. " +
                 "Let's give it a try! ";
 
-    // Saves the results as a .xlx file
+    // Saves the results as an .xlx file
     private void SaveNewResults()
     {
         switch (testIndex)
@@ -93,7 +93,6 @@ public class PCSceneManager : MonoBehaviour
 
         System.Random rand = new();
         var shuffled = joined.OrderBy(x => rand.Next()).ToList();
-
 
         this.scenes = shuffled.Select(pair => pair.x).ToList();
         this.swapArguments = shuffled.Select(pair => pair.y).ToList();
