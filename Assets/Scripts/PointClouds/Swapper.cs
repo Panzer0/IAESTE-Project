@@ -13,6 +13,7 @@ public class Swapper : MonoBehaviour
     public float cycleSeconds = 10;
     private int cycleIndex = 0;
     private bool paused = true;
+    private bool reverse = false;
 
     void Start()
     {
@@ -50,11 +51,24 @@ public class Swapper : MonoBehaviour
         }
     }
 
-
+    // todo: Fix the odd stutter during the reversal step
     void Advance()
     {
         cycleIndex %= indices.Count;
-        this.PCSceneManagerScript.Swap(indices[cycleIndex], indices[(cycleIndex + 1) % indices.Count]);
+        if (!this.reverse)
+        {
+            this.PCSceneManagerScript.Swap(indices[cycleIndex], indices[(cycleIndex + 1) % indices.Count]);
+        }
+        else
+        {
+            print($"Going to swap {(indices.Count - cycleIndex - 1) % indices.Count} and {(indices.Count - cycleIndex) % indices.Count} while the count is {indices.Count}");
+            this.PCSceneManagerScript.Swap(indices[(indices.Count - cycleIndex - 1) % indices.Count], indices[(indices.Count - cycleIndex) % indices.Count]);
+        }
+        if(cycleIndex == indices.Count -1)
+        {
+            this.reverse = !this.reverse;
+            
+        }
         cycleIndex++;
     }
 }
