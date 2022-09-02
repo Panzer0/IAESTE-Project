@@ -1,9 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// Starting in 2 seconds.
-// a projectile will be launched every 0.3 seconds
-
 public class Swapper : MonoBehaviour
 {
     private PCSceneManager PCSceneManagerScript;
@@ -61,13 +58,12 @@ public class Swapper : MonoBehaviour
         }
         else
         {
-            print($"Going to swap {(indices.Count - cycleIndex - 1) % indices.Count} and {(indices.Count - cycleIndex) % indices.Count} while the count is {indices.Count}");
+            print($"Going to swap {(indices.Count - cycleIndex - 1) % indices.Count} and {(indices.Count - cycleIndex) % indices.Count}, the count is {indices.Count}");
             this.PCSceneManagerScript.Swap(indices[(indices.Count - cycleIndex - 1) % indices.Count], indices[(indices.Count - cycleIndex) % indices.Count]);
         }
         if(cycleIndex == indices.Count -1)
         {
             this.reverse = !this.reverse;
-            
         }
         cycleIndex++;
     }
