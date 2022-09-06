@@ -8,6 +8,7 @@ public class Swapper : MonoBehaviour
     public List<int> indices;
     // The amount of seconds it takes to cycle through the requested objects
     public float cycleSeconds = 10;
+    private float frequency;
     private int cycleIndex = 0;
     private bool paused = true;
     private bool reverse = false;
@@ -24,7 +25,7 @@ public class Swapper : MonoBehaviour
     }
     public void ResumeCycle()
     {
-        this.InvokeRepeating(nameof(Advance), cycleSeconds / indices.Count, cycleSeconds / indices.Count);
+        this.InvokeRepeating(nameof(Advance), this.frequency, this.frequency);
         this.paused = false;
     }
 
@@ -34,6 +35,10 @@ public class Swapper : MonoBehaviour
         this.cycleIndex = 0;
         this.cycleSeconds = cycleSeconds;
         this.indices = indices;
+        this.frequency = cycleSeconds / indices.Count;
+        List<int> reversedCenter = indices.GetRange(1, indices.Count - 1);
+        reversedCenter.Reverse();
+        this.indices.AddRange(reversedCenter);
         this.ResumeCycle();
     }
     public void TogglePaused()
@@ -52,19 +57,7 @@ public class Swapper : MonoBehaviour
     void Advance()
     {
         cycleIndex %= indices.Count;
-        if (!this.reverse)
-        {
-            this.PCSceneManagerScript.Swap(indices[cycleIndex], indices[(cycleIndex + 1) % indices.Count]);
-        }
-        else
-        {
-            print($"Going to swap {(indices.Count - cycleIndex - 1) % indices.Count} and {(indices.Count - cycleIndex) % indices.Count}, the count is {indices.Count}");
-            this.PCSceneManagerScript.Swap(indices[(indices.Count - cycleIndex - 1) % indices.Count], indices[(indices.Count - cycleIndex) % indices.Count]);
-        }
-        if(cycleIndex == indices.Count -1)
-        {
-            this.reverse = !this.reverse;
-        }
+        this.PCSceneManagerScript.Swap(indices[cycleIndex], indices[(cycleIndex + 1) % indices.Count]);
         cycleIndex++;
     }
 }

@@ -88,7 +88,7 @@ public class ReadPointCloudRuntime : MonoBehaviour
                         ));
                 if(i == frameRangeStart)
                 {
-                    yPos += 100000;
+                    yPos += 1000000;
                 }
             }
             return templates;
@@ -323,7 +323,8 @@ public class ReadPointCloudRuntime : MonoBehaviour
                 GameObject go = CreateParticleSystemObject("Particle System " + cloudTemplate.GetName());
 
                 ParseTemplate(cloudTemplate);
-                ApplyCollisionMesh(go, getBaseObjectName(cloudTemplate.GetName()), cloudTemplate.GetFrameIndex());
+                // todo: The second argument being 1 is a temporary solution to the lack of meshes. Replace with cloudTemplate.GetFrameIndex() if these are present
+                ApplyCollisionMesh(go, getBaseObjectName(cloudTemplate.GetName()), 1);
                 SetupRigidbody(go);
 
                 // Adding SenveGlove-related scripts
