@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -6,37 +6,42 @@ using UnityEngine.VFX;
  
 public class PointCloudRenderer : MonoBehaviour {
     VisualEffect vfx;
-    uint resolution = 1400;
+    readonly uint resolution = 1400;
     public float particleSize = 1f;
     public int frame = 0;
     public int frames = 1;
-    List<(Texture2D texColor, Texture2D texPosScale, uint particleCount)> textures = new List<(Texture2D, Texture2D, uint)>();
+    readonly List<(Texture2D texColor, Texture2D texPosScale, uint particleCount)> textures = new();
 
     public (List<Vector3> positions, List<Color> colors) ReadPointCloud(string name) {
-        List<Vector3> positions = new List<Vector3>();
-        List<Color> colors = new List<Color>();
-        StreamReader inp = new StreamReader(@name);
+        List<Vector3> positions = new();
+        List<Color> colors = new();
+        StreamReader inp = new(@name);
         bool t = false;
         //var i = 0;
-        while (!inp.EndOfStream) {
-            if (!t) {
-                if (inp.ReadLine().Contains("end_header")) {
+        while (!inp.EndOfStream)
+        {
+            if (!t)
+            {
+                if (inp.ReadLine().Contains("end_header"))
+                {
                     t = true;
                 }
-            } else {
-                var line = inp.ReadLine();
+            }
+            else
+            {
+                string line = inp.ReadLine();
                 //i++;
                 //if (i%2 ==0){
-                var values = line.Split(' ');
+                string[] values = line.Split(' ');
                 float x = float.Parse(values[0]);
                 float y = float.Parse(values[1]);
                 float z = float.Parse(values[2]);
-                Vector3 pos = new Vector3(x, y, z);
+                Vector3 pos = new(x, y, z);
                 positions.Add(pos);
                 float r = float.Parse(values[3]) / 255.0f;
                 float g = float.Parse(values[4]) / 255.0f;
                 float b = float.Parse(values[5]) / 255.0f;
-                Color col = new Color(r, g, b);
+                Color col = new(r, g, b);
                 colors.Add(col);
                 /*}
                 else{
@@ -48,18 +53,21 @@ public class PointCloudRenderer : MonoBehaviour {
         return (positions, colors);
     }
 
-    public (Texture2D texColor, Texture2D texPosScale, uint particleCount) Generate(List<Vector3> positions, List<Color> colors) {
-        Texture2D texColor = new Texture2D(positions.Count > (int)resolution ? (int)resolution : positions.Count, Mathf.Clamp(positions.Count / (int)resolution, 1, (int)resolution), TextureFormat.RGBAFloat, false);
-        Texture2D texPosScale = new Texture2D(positions.Count > (int)resolution ? (int)resolution : positions.Count, Mathf.Clamp(positions.Count / (int)resolution, 1, (int)resolution), TextureFormat.RGBAFloat, false);
+    public (Texture2D texColor, Texture2D texPosScale, uint particleCount) Generate(List<Vector3> positions, List<Color> colors)
+    {
+        Texture2D texColor = new(positions.Count > (int)resolution ? (int)resolution : positions.Count, Mathf.Clamp(positions.Count / (int)resolution, 1, (int)resolution), TextureFormat.RGBAFloat, false);
+        Texture2D texPosScale = new(positions.Count > (int)resolution ? (int)resolution : positions.Count, Mathf.Clamp(positions.Count / (int)resolution, 1, (int)resolution), TextureFormat.RGBAFloat, false);
         int texWidth = texColor.width;
         int texHeight = texColor.height;
         Debug.Log("Length " + positions.Count.ToString());
         Debug.Log("Length " + colors.Count.ToString());
-        for (int y = 0; y < texHeight; y++) {
-            for (int x = 0; x < texWidth; x++) {
-                int index = x + y * texWidth;
+        for (int y = 0; y < texHeight; y++)
+        {
+            for (int x = 0; x < texWidth; x++)
+            {
+                int index = x + (y * texWidth);
                 texColor.SetPixel(x, y, colors[index]);
-                var data = new Color(positions[index].x, positions[index].y, positions[index].z, particleSize);
+                Color data = new Color(positions[index].x, positions[index].y, positions[index].z, particleSize);
                 texPosScale.SetPixel(x, y, data);
             }
         }
@@ -68,24 +76,47 @@ public class PointCloudRenderer : MonoBehaviour {
         uint particleCount = (uint)positions.Count;
         return (texColor, texPosScale, particleCount);
     }
+
+    public void RestartPointCloud(string newName)
+    {
+        this.name = newName;
+        this.frame = 0;
+        this.textures.Clear();
+    }
  
     private void Start() {
         vfx = GetComponent<VisualEffect>();
     }
  
     private void Update() {
-        if (frame < frames) {
+        if (frame < frames)
+        {
+            // Clunky temporary solution, shouldn't be dependent on starting frame
+            if(frame == 1)
+            {
+                gameObject.AddComponent<Rigidbody>().useGravity = false;
+                gameObject.AddComponent<CapsuleCollider>();
+            }
             string fileName =
                 $"Assets//" +
                 $"Resources//" +
                 $"PointClouds//" +
                 $"{name}//" +
                 $"{name}_{frame + 1:D4}.ply";
-            var (p, c) = ReadPointCloud(fileName);
-            var (tc, tp, pc) = Generate(p, c);
-            textures.Add((tc, tp, pc));
+            try
+            {
+                (List<Vector3> p, List<Color> c) = ReadPointCloud(fileName);
+                (Texture2D tc, Texture2D tp, uint pc) = Generate(p, c);
+                textures.Add((tc, tp, pc));
+            }
+            catch(Exception e)
+            {
+                print("Couldn't load point cloud: ");
+                print(e.Message);
+                frame = -1;
+            }
         } else /*if (frame == frames) */{
-            var (tc, tp, pc) = textures[frame % frames];
+            (Texture2D tc, Texture2D tp, uint pc) = textures[frame % frames];
             vfx.Reinit();
             vfx.SetUInt(Shader.PropertyToID("ParticleCount"), pc);
             vfx.SetTexture(Shader.PropertyToID("TexColor"), tc);

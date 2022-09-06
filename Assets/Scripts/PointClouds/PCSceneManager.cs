@@ -18,6 +18,8 @@ public class PCSceneManager : MonoBehaviour
     private Results results;
     public Text message;
 
+    public List<PointCloudRenderer> altRenderers;
+
     // The message which will be displayed in the presence of the point clouds
     private string activeInstructions;
 
@@ -103,6 +105,22 @@ public class PCSceneManager : MonoBehaviour
      */
     public void Advance()
     {
+        switch (this.altRenderers.Count)
+        {
+            case 4:
+                this.altRenderers[3].RestartPointCloud("longdress");
+                goto case 3;
+            case 3:
+                this.altRenderers[2].RestartPointCloud("loot");
+                goto case 2;
+            case 2:
+                this.altRenderers[1].RestartPointCloud("redandblack");
+                goto case 1;
+            case 1:
+                this.altRenderers[0].RestartPointCloud("soldier");
+                break;
+        }
+        /*      // Temporarily commented out for the purpose of testing new rendering method
         // Save current results
         if (sceneIndex >= 0)
         {
@@ -150,6 +168,7 @@ public class PCSceneManager : MonoBehaviour
                 }
             }
         }
+        */
     }
 
 
@@ -434,6 +453,6 @@ public class PCSceneManager : MonoBehaviour
         this.InitialiseSwapArguments();
 
         this.ShuffleScenes();
-        //this.Advance();
+        this.Advance();
     }
 }
