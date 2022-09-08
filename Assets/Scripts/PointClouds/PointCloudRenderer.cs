@@ -10,6 +10,7 @@ public class PointCloudRenderer : MonoBehaviour {
     public float particleSize = 1f;
     public int frame = 0;
     public int frames = 1;
+    public uint quality = 0;
     readonly List<(Texture2D texColor, Texture2D texPosScale, uint particleCount)> textures = new();
 
     public (List<Vector3> positions, List<Color> colors) ReadPointCloud(string name) {
@@ -67,7 +68,7 @@ public class PointCloudRenderer : MonoBehaviour {
             {
                 int index = x + (y * texWidth);
                 texColor.SetPixel(x, y, colors[index]);
-                Color data = new Color(positions[index].x, positions[index].y, positions[index].z, particleSize);
+                Color data = new(positions[index].x, positions[index].y, positions[index].z, particleSize);
                 texPosScale.SetPixel(x, y, data);
             }
         }
@@ -77,11 +78,38 @@ public class PointCloudRenderer : MonoBehaviour {
         return (texColor, texPosScale, particleCount);
     }
 
-    public void RestartPointCloud(string newName)
+    public void RestartPointCloud(string newName, uint quality = 0)
     {
         this.name = newName;
+        this.quality = quality;
         this.frame = 0;
         this.textures.Clear();
+
+        CapsuleCollider tempCollider = gameObject.GetComponent<CapsuleCollider>();
+        switch(name)
+        {
+            case "longdress":
+                tempCollider.center = new Vector3(274, 528, 185);
+                tempCollider.radius = 172;
+                tempCollider.height = 1026;
+                break;
+            case "redandblack":
+                tempCollider.center = new Vector3(355, 504, 244);
+                tempCollider.radius = 176;
+                tempCollider.height = 985;
+                break;
+            case "loot":
+                tempCollider.center = new Vector3(229, 521, 300);
+                tempCollider.radius = 183;
+                tempCollider.height = 1019;
+                break;
+            case "soldier":
+                tempCollider.center = new Vector3(202, 516, 229);
+                tempCollider.radius = 213;
+                tempCollider.height = 1010;
+                break;
+                
+        }
     }
  
     private void Start() {
@@ -92,16 +120,17 @@ public class PointCloudRenderer : MonoBehaviour {
         if (frame < frames)
         {
             // Clunky temporary solution, shouldn't be dependent on starting frame
-            if(frame == 1)
-            {
-                gameObject.AddComponent<Rigidbody>().useGravity = false;
-                gameObject.AddComponent<CapsuleCollider>();
-            }
+            //if(frame == 1)
+            //{
+                //gameObject.AddComponent<Rigidbody>().useGravity = false;
+                //gameObject.AddComponent<CapsuleCollider>();
+            //}
             string fileName =
                 $"Assets//" +
                 $"Resources//" +
                 $"PointClouds//" +
                 $"{name}//" +
+                $"{quality}//" +
                 $"{name}_{frame + 1:D4}.ply";
             try
             {

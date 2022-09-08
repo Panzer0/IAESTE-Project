@@ -105,22 +105,6 @@ public class PCSceneManager : MonoBehaviour
      */
     public void Advance()
     {
-        switch (this.altRenderers.Count)
-        {
-            case 4:
-                this.altRenderers[3].RestartPointCloud("longdress");
-                goto case 3;
-            case 3:
-                this.altRenderers[2].RestartPointCloud("loot");
-                goto case 2;
-            case 2:
-                this.altRenderers[1].RestartPointCloud("redandblack");
-                goto case 1;
-            case 1:
-                this.altRenderers[0].RestartPointCloud("soldier");
-                break;
-        }
-        /*      // Temporarily commented out for the purpose of testing new rendering method
         // Save current results
         if (sceneIndex >= 0)
         {
@@ -135,6 +119,22 @@ public class PCSceneManager : MonoBehaviour
             sceneIndex--;
             canvases.SetActive(false);
             message.text = POST_INSTRUCTIONS;
+
+            switch (this.altRenderers.Count)
+            {
+                case 4:
+                    this.altRenderers[3].RestartPointCloud("Inactive D");
+                    goto case 3;
+                case 3:
+                    this.altRenderers[2].RestartPointCloud("Inactive C"); 
+                    goto case 2;
+                case 2:
+                    this.altRenderers[1].RestartPointCloud("Inactive B");
+                    goto case 1;
+                case 1:
+                    this.altRenderers[0].RestartPointCloud("Inactive A");
+                    break;
+            }
 
             // If the current test utilises swappers
             if (this.swapperObjects != null)
@@ -151,24 +151,29 @@ public class PCSceneManager : MonoBehaviour
         {
             this.PCRenderer.RenderPointClouds(this.scenes[sceneIndex]);
             canvases.SetActive(true);
-            message.text = activeInstructions;
+            print($"Updating the meswsage to {this.sceneIndex}\n{activeInstructions}");
+            message.text = $"{this.sceneIndex}\n{activeInstructions}";
 
-            // If the current test utilises swappers
-            if (this.swapperObjects != null)
+            switch (this.altRenderers.Count)
             {
-                // Give the swappers new directives. The former ones are aborted.
-                foreach (var zipped in swapperObjects.Zip(this.swapArguments[sceneIndex], (o, a) => new { swapperObject = o, stringArgs = a }))
-                {
-                    List<int> newArguments = zipped.stringArgs
-                        .Split(' ')
-                        .Where(x => int.TryParse(x, out _))
-                        .Select(int.Parse)
-                        .ToList();
-                    zipped.swapperObject.GetComponent<Swapper>().UpdateParameters(newArguments.OfType<int>().Skip(1).ToList(), newArguments[0]);
-                }
+                case 4:
+                    print($"Setting [4] to {this.scenes[testIndex][3].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][3].Split(" ")[1])}");
+                    this.altRenderers[3].RestartPointCloud(this.scenes[sceneIndex][3].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][3].Split(" ")[1]));
+                    goto case 3;
+                case 3:
+                    print($"Setting [3] to {this.scenes[testIndex][2].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][2].Split(" ")[1])}");
+                    this.altRenderers[2].RestartPointCloud(this.scenes[sceneIndex][2].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][2].Split(" ")[1]));
+                    goto case 2;
+                case 2:
+                    print($"Setting [2] to {this.scenes[testIndex][1].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][1].Split(" ")[1])}");
+                    this.altRenderers[1].RestartPointCloud(this.scenes[sceneIndex][1].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][1].Split(" ")[1]));
+                    goto case 1;
+                case 1:
+                    print($"Setting [1] to {this.scenes[testIndex][0].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][0].Split(" ")[1])}");
+                    this.altRenderers[0].RestartPointCloud(this.scenes[sceneIndex][0].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][0].Split(" ")[1]));
+                    break;
             }
         }
-        */
     }
 
 
@@ -187,16 +192,6 @@ public class PCSceneManager : MonoBehaviour
         {
             canvases.SetActive(false);
             this.message.text = PRE_INSTRUCTIONS;
-
-            // If the current test utilises swappers
-            if (this.swapperObjects != null)
-            {
-                // Stop each of the swappers
-                foreach (GameObject swapperObject in this.swapperObjects)
-                {
-                    swapperObject.GetComponent<Swapper>().PauseCycle();
-                }
-            }
         }
         // Some scenes still remain, proceed to the previous one
         else
@@ -206,19 +201,24 @@ public class PCSceneManager : MonoBehaviour
             ClearCanvases();
             message.text = activeInstructions;
 
-            // If the current test utilises swappers
-            if (this.swapperObjects != null)
+            switch (this.altRenderers.Count)
             {
-                // Give the swappers new directives. The former ones are aborted.
-                foreach (var zipped in swapperObjects.Zip(this.swapArguments[sceneIndex], (o, a) => (swapperObject: o, stringArgs: a)))
-                {
-                    List<int> newArguments = zipped.stringArgs
-                        .Split(' ')
-                        .Where(x => int.TryParse(x, out _))
-                        .Select(int.Parse)
-                        .ToList();
-                    zipped.swapperObject.GetComponent<Swapper>().UpdateParameters(newArguments.OfType<int>().Skip(1).ToList(), newArguments[0]);
-                }
+                case 4:
+                    print($"Setting [4] to {this.scenes[testIndex][3].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][3].Split(" ")[1])}");
+                    this.altRenderers[3].RestartPointCloud(this.scenes[sceneIndex][3].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][3].Split(" ")[1]));
+                    goto case 3;
+                case 3:
+                    print($"Setting [3] to {this.scenes[testIndex][2].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][2].Split(" ")[1])}");
+                    this.altRenderers[2].RestartPointCloud(this.scenes[sceneIndex][2].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][2].Split(" ")[1]));
+                    goto case 2;
+                case 2:
+                    print($"Setting [2] to {this.scenes[testIndex][1].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][1].Split(" ")[1])}");
+                    this.altRenderers[1].RestartPointCloud(this.scenes[sceneIndex][1].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][1].Split(" ")[1]));
+                    goto case 1;
+                case 1:
+                    print($"Setting [1] to {this.scenes[testIndex][0].Split(" ")[0]}, {uint.Parse(this.scenes[testIndex][0].Split(" ")[1])}");
+                    this.altRenderers[0].RestartPointCloud(this.scenes[sceneIndex][0].Split(" ")[0], uint.Parse(this.scenes[sceneIndex][0].Split(" ")[1]));
+                    break;
             }
         }
     }
@@ -292,103 +292,83 @@ public class PCSceneManager : MonoBehaviour
             case 1:
                 this.scenes.Add(new()
                 {
-                    $"longdress_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"longdress_0001.ply -2 {defaultHeight} 2 50 550",
-                    $"longdress_0001.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"longdress_0001.ply 2 {defaultHeight} -2 100 550"
+                    $"longdress 0",
+                    $"longdress 1",
+                    $"longdress 0",
+                    $"longdress 5",
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"soldier_0001.ply -2 {defaultHeight} 2 50 550",
-                    $"soldier_0001.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"soldier_0001.ply 2 {defaultHeight} -2 100 550"
+                    $"soldier 5",
+                    $"soldier 1",
+                    $"soldier 0",
+                    $"soldier 1",
                 });
                 this.scenes.Add(new()
                 {
-                    $"redandblack_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack_0001.ply -2 {defaultHeight} 2 50 550",
-                    $"redandblack_0001.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"redandblack_0001.ply 2 {defaultHeight} -2 100 550"
+                    $"redandblack 1",
+                    $"redandblack 5",
+                    $"redandblack 5",
+                    $"redandblack 0",
                 });
                 this.scenes.Add(new()
                 {
-                    $"loot_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"loot_0001.ply -2 {defaultHeight} 2 50 550",
-                    $"loot_0001.ply -2.7 {defaultHeight} -2.7 75 550",
-                    $"loot_0001.ply 2 {defaultHeight} -2 100 550"
+                    $"loot 5",
+                    $"loot 0",
+                    $"loot 1",
+                    $"loot 0",
                 });
                 break;
             case 2:
                 this.scenes.Add(new()
                 {
-                    $"longdress_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"longdress_0001.ply -2 {defaultHeight} 2 50 550",
-                    $"longdress_0001.ply -2 {defaultHeight} -3 75 550",
-                    $"longdress_0001.ply 2 {defaultHeight} -2 25 550",
-                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 150 550",
-                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 90 550",
-                    $"longdress_0001.ply 2 {defaultHeight + 1000} -2 20 550"
+                    $"longdress 0",
+                    $"longdress 1",
+                    $"longdress 0",
+                    $"longdress 5",
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier.ply 2 {defaultHeight} 2 25 550",
-                    $"soldier.ply -2 {defaultHeight} 2 50 550",
-                    $"soldier.ply -2 {defaultHeight} -3 75 550",
-                    $"soldier.ply 2 {defaultHeight} -2 25 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 80 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 55 550",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 25 550 2 26",
-                    $"soldier.ply 2 {defaultHeight + 1000} -2 50 550 26 51"
+                    $"soldier 5",
+                    $"soldier 1",
+                    $"soldier 0",
+                    $"soldier 1",
                 });
                 this.scenes.Add(new()
                 {
-                    $"redandblack.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack.ply -2 {defaultHeight} 2 50 550",
-                    $"redandblack.ply -2 {defaultHeight} -3 75 550",
-                    $"redandblack.ply 2 {defaultHeight} -2 25 550",
-                    $"redandblack.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"redandblack.ply 2 {defaultHeight + 1000} -2 20 550",
-                    $"redandblack.ply 2 {defaultHeight + 1000} -2 40 550",
-                    $"redandblack.ply 2 {defaultHeight + 1000} -2 25 550 2 51",
-
+                    $"redandblack 1",
+                    $"redandblack 5",
+                    $"redandblack 5",
+                    $"redandblack 0",
                 });
                 this.scenes.Add(new()
                 {
-                    $"loot_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"loot_0001.ply -2 {defaultHeight} 2 50 550",
-                    $"loot_0001.ply -2 {defaultHeight} -3 75 550",
-                    $"loot_0001.ply 2 {defaultHeight} -2 25 550",
-                    $"loot_0001.ply 2 {defaultHeight + 10000} -2 15 550",
-                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 500 550",
-                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 60 550",
-                    $"loot_0001.ply 2 {defaultHeight + 1000} -2 15 550",
-                    $"loot.ply 2 {defaultHeight + 1000} -2 25 550 2 51",
+                    $"loot 5",
+                    $"loot 0",
+                    $"loot 1",
+                    $"loot 0",
                 });
                 break;
             case 3:
                 this.scenes.Add(new()
                 {
-                    $"longdress_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"loot_0001.ply -2 {defaultHeight} 2 50 550"
+                    $"longdress 0",
+                    $"soldier 5",
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"longdress_0001.ply -2 {defaultHeight} 2 50 550"
+                    $"soldier 5",
+                    $"loot 1",
                 });
                 this.scenes.Add(new()
                 {
-                    $"soldier_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack_0001.ply -2 {defaultHeight} 2 50 550"
+                    $"redandblack 1",
+                    $"longdress 1",
                 });
                 this.scenes.Add(new()
                 {
-                    $"loot_0001.ply 2 {defaultHeight} 2 25 550",
-                    $"redandblack_0001.ply -2 {defaultHeight} 2 50 550"
+                    $"loot 1",
+                    $"redandblack 0",
                 });
                 break;
         }
