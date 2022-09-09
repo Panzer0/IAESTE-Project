@@ -98,7 +98,7 @@ You can also specify which object you want to convert, at which depth, starting 
 5. Once that's established, you can copy the Meshes and PointClouds folders into the MeshRenderer/Assets/Resources directory.
 ![](Images/6.png)
 
-** HDRP Branch **
+**HDRP Branch**
 If using the HDRP branch, the PointCloud folder follows a different format to accomodate for the inclusion of different point cloud qualities: [point cloud name]/[quality value]/[.ply files].
 
 If you do not have access to different point cloud qualities and want to run the HDRP variant, assume the quality value is 0 and adjust the scenes accordingly.
@@ -170,14 +170,14 @@ During the final test, you will look at two different objects and choose the one
 
 New tests can be added and the existing ones can be altered. 
 
-** Master Branch **
+**Master Branch**
 
 On the master branch, all generation is handled by the singular PCSceneManager script, the methods of which are invoked by the SceneManagerController script. 
 In order to adjust the set of available point clouds, adjust the parameters of the strings added to the Scenes list in the InitialiseScenes() method. 
 Keep in mind that if the scene utilises swappers, the same should be done to the values adjusted in the InitialiseSwapArguments() method. 
 The meaning of the configuration strings are explained respectively in the RenderPointCloudRuntime and Swapper classes.
 
-** HDRP Branch **
+**HDRP Branch**
 
 On the HDRP branch, all generation is handled by the PointCloudRenderer script, which is to be attached to the game object that is meant to become a point cloud and is invoked by the PCSceneManager script.
 When creating such an object, add a VisualEffect with "PointCloud" as its Asset Template, a CapsuleCollider and a Rigidbody. Remember to add the object to your PCSceneManager's "Alt renderers" field. 
@@ -213,7 +213,7 @@ Make sure that all frames of both point clouds and meshes are present in the Res
 
 One possible reason can be the power consumption limitations in some machines.
 
-## Mising tag
+## Missing tag
 
 The project might occasionally return an error about a missing tag, usually called "Button". In order to fix this, simply add a correspondent tag to the project. 
 In order to do this, select any game object in the editor, then in the inspector unroll the spinner labeled "Tag" and choose "Add Tag...". There, click the "+" button and input the name of the missing tag.
