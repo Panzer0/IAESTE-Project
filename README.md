@@ -8,7 +8,7 @@ The project was built upon the foundation of Imen Mahdi's project. The following
 ## Requirements
 
 ### Hardware
-* The machine used in this project is equipped with an Intel core i7 processor, 16 GB of RAM, and an Nvidia Geforce RTX 2070 with max-Q design. Anything equivalent should work as well.
+* The machine used in this project is equipped with an Intel core i7 processor, 16 GB of RAM, and an Nvidia Geforce RTX 2070 with max-Q design. Anything equivalent or better should work as well.
 * Oculus Quest 2 128GB
 * USB-C to USB-C Cable that supports USB3.2 GEN1 with 5Gbps bandwidth.
 * SenseGloves NOVA haptic gloves
@@ -32,10 +32,10 @@ If not, run the following command to install it.
 The Oculus App can be downloaded from [the official website](https://store.facebook.com/gb/quest/setup/).
 
 #### SenseCom
-
 The software necessary to use the SenseGloves NOVA is included in [the official GitHub repository](https://github.com/Adjuvo/SenseGlove-Unity).
 
 ## Steps to follow
+
 ### Convert PointClouds to Meshes
 We will be using the [JPEG Pleno Database: 8i Voxelized Full Bodies (8iVFB v2)](http://plenodb.jpeg.org/pc/8ilabs/) with 4 different human subjects. We will first convert these objects to meshes.
 
@@ -110,7 +110,6 @@ Before opening the Unity project, make sure that you Oculus Quest is well set-up
 
 
 ### Open Unity Project
-
 1. Open Unity Hub. Make sure you have the Unity 2022.1.6f1 version installed. Then, open the folder VirtualTests as a Unity Project. If the project takes too much time to load, delete the Meshes folder. Once the project opens, you can copy back the meshes one object at a time. This is due to the large memory size of the meshes.
 
 ![](Images/8.png)
@@ -139,7 +138,6 @@ The aforementioned actions shall henceforth be refered to as "advance".
 
 
 ### Test 1
-
 Once the scene loads, you will see four copies of the same object, each at a different quality representation. 
 
 Rate the quality of the 4 objects
@@ -153,68 +151,54 @@ Once all objects are rated, you will look again at object D and try to match its
 Once you are certain of your choices, you can advance to the next part. Redo the same steps for part 2.
 
 ### Test 2
-
 For this test, you will see four copies of an object. The quality representation of each one will change dynamically over time. Your task is to rate the overall quality of each of them. You will also indicate how noticeable is the change in qualities. Again, use the sliders to rate the objects.
 
 Take your time to observe the objects. 
 
 Once you are certain of your choices, you can advance to the next part.
 
-
 ### Test 3
-
 During the final test, you will look at two different objects and choose the one with the higher quality by clicking the button on top of it. You can also indicate that you do not see any difference of quality between the objects by clicking the button in the middle.
 
 
 ### Test configuration
-
 New tests can be added and the existing ones can be altered. 
 
 **Master Branch**
-
 On the master branch, all generation is handled by the singular PCSceneManager script, the methods of which are invoked by the SceneManagerController script. 
 In order to adjust the set of available point clouds, adjust the parameters of the strings added to the Scenes list in the InitialiseScenes() method. 
 Keep in mind that if the scene utilises swappers, the same should be done to the values adjusted in the InitialiseSwapArguments() method. 
 The meaning of the configuration strings are explained respectively in the RenderPointCloudRuntime and Swapper classes.
 
 **HDRP Branch**
-
 On the HDRP branch, all generation is handled by the PointCloudRenderer script, which is to be attached to the game object that is meant to become a point cloud and is invoked by the PCSceneManager script.
 When creating such an object, add a VisualEffect with "PointCloud" as its Asset Template, a CapsuleCollider and a Rigidbody. Remember to add the object to your PCSceneManager's "Alt renderers" field. 
 In order to adjust the set of available point clouds, adjust the parameters of the strings added to the Scenes list in the InitialiseScenes() method of the PCSceneManager script.
 
 
 ## Trouble-Shooting
-
 If you run into a problem, there could be many reasons for that. Below is a list of possible reasons why that happened. If you still can't figure out the problem, feel free to reach out to Panzer0 on GitHub.
 
 ### Project Settings
-
 Make sure that all packages and the project settings are in order.
 
 ### Cable Compatibility
-
  Having a faulty cable or not enough bandwidth can affect your experience. Make sure that you have a USB 3.0 and use the Oculus App to Test the connection.
 
 ### Update drivers
-
 If the problem still persists, update your USB drivers.
 
 ### Check Components
-
  Make sure that all components are checked for each game object. 
 
 ### Initialization
-
 Make sure you have correctly added all of the initialization variables.
 Make sure that all frames of both point clouds and meshes are present in the Resources directory.
 
 ### Power Limitations
-
 One possible reason can be the power consumption limitations in some machines.
 
-## Missing tag
-
+### Missing tag
 The project might occasionally return an error about a missing tag, usually called "Button". In order to fix this, simply add a correspondent tag to the project. 
 In order to do this, select any game object in the editor, then in the inspector unroll the spinner labeled "Tag" and choose "Add Tag...". There, click the "+" button and input the name of the missing tag.
 
