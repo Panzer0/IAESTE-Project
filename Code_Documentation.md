@@ -34,7 +34,7 @@ XR Plugin Management 4.2.1
 # File Structure
 The following documentation aims to provide a starter guide to understand the project structure. We will go through a brief description of the most relevant files and directories.
 
-The project consists of converting the point cloud database into meshes and rendering them on different levels of quality to compare performance. For this, we will have two main folders as follows:
+The project consists of converting the point cloud database into meshes and rendering them and point clouds on different levels of quality to compare performance. For this, we will have two main folders as follows:
 
 ```
 >Project
