@@ -102,8 +102,14 @@ You can also specify which object you want to convert, at which depth, starting 
 
 **IMPORTANT NOTE**: Depending on the machine running, this process will take hours to finish running. We recommend converting only 150 frames per object as only these will be used in the subjective tests. 
 
-5. Once that's established, you can copy the Meshes folder into the MeshRenderer/Assets/Resources directory
+5. Once that's established, you can copy the Meshes and PointClouds folders into the MeshRenderer/Assets/Resources directory.
 ![](Images/6.png)
+
+** HDRP Branch **
+If using the HDRP branch, the PointCloud folder follows a different format to accomodate for the inclusion of different pointCloud qualities: [point cloud name]/[quality value]/[.ply files].
+
+If you do not have access to different point cloud qualities and want to run the HDRP variant, assume the quality value is 0 and adjust the scenes adjustingly.
+
 
 **IMPORTANT NOTE**: Do not change the file structure.
 
@@ -129,7 +135,11 @@ Before opening the Unity project, make sure that you Oculus Quest is well set-up
 
 **IMPORTANT NOTE**: After you finish Test1, redo the steps 2 and 3 on Test2 and Test3.
 
-Once you play the scene, you will be placed inside a virtual room. You will navigate through the different parts of the test using the red sphere in front of you. To do that, you will use your controller to point the laser beam at the sphere. Once the beam light turns white, you can click on the grip button.
+Once you play the scene, you will be placed inside a virtual room. 
+
+In order to cycle through mesh objects, use your controller to point the laser beam at the red sphere. Once the beam light turns white, you can click on the grip button.
+
+In order to cycle through point cloud objects, perform the "Confirm" gesture while pointing at the blue segment of the totem. In order to learn the controls, follow the steps of the tutorial displayed on the right wall.
 
 ![](Images/oculus-vr-controllers.png)
 
